@@ -8,23 +8,29 @@ import { UsersModule } from './modules/users/users.module';
 import { ImageTypeModule } from './modules/imageType/imageType.module';
 import { ImagesModule } from './modules/images/images.module';
 import { InquiryModule } from './modules/inquiry/inquiry.module';
+import { MulterModule } from '@nestjs/platform-express';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot(
-      {
-        rootPath: join(__dirname, '..', 'images'),
-        serveRoot: '/images',
-      },
-      {
-        rootPath: join(__dirname, '..', 'students'),
-        serveRoot: '/students',
-      },
-    ),
+    // ServeStaticModule.forRoot(
+    //   {
+    //     rootPath: join(__dirname, '..', 'uploads/images'),
+    //     serveRoot: '/images',
+    //   },
+    //   {
+    //     rootPath: join(__dirname, '..', 'uploads/students'),
+    //     serveRoot: '/students',
+    //   },
+    // ),
+    MulterModule.register({
+      dest: './uploads/images',
+    }),
     UsersModule,
     ImageTypeModule,
     ImagesModule,
     InquiryModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

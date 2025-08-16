@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, PipeTransform } from '@nestjs/common';
 import { extname } from 'path';
+import { ValidationException } from '../exceptions/validation.exception';
 
 @Injectable()
 export class FileTypeValidationPipe implements PipeTransform {
@@ -9,13 +10,14 @@ export class FileTypeValidationPipe implements PipeTransform {
 
   transform(value: Express.Multer.File): Express.Multer.File {
     if (!value) {
-      return value; // in case file is optional
+      return value;
     }
 
     const extension = extname(value.originalname).toLowerCase();
 
     if (!this.allowedExtensions.includes(extension)) {
-      throw new BadRequestException(
+      throw new ValidationException(
+        'file',
         `File type ${extension} not supported. Allowed types: ${this.allowedExtensions.join(', ')}`,
       );
     }

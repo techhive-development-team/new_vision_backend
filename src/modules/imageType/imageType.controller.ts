@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, ValidationPipe } from '@nestjs/common';
 import { ImageTypeService } from './imageType.service';
 import { Prisma, ImageType as ImageTypeModel } from '@prisma/client';
 import { dateTimestampProvider } from 'rxjs/internal/scheduler/dateTimestampProvider';
+import { CreateImageTypeDto } from './dto/create-imageType.dto';
 
 @Controller('imageType')
 export class ImageTypeController {
@@ -9,7 +10,7 @@ export class ImageTypeController {
 
   @Post()
   createImageType(
-    @Body() imageTypeData: Prisma.ImageTypeCreateInput,
+    @Body(new ValidationPipe()) imageTypeData: CreateImageTypeDto,
   ): Promise<ImageTypeModel> {
     return this.imageTypeService.createImageType(imageTypeData);
   }

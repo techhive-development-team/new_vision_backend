@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateInquiryDto {
 
@@ -8,6 +8,7 @@ export class CreateInquiryDto {
   @IsNotEmpty()
   public email: string;
   
+  @IsOptional()
   public phone: string;
   
   @IsNotEmpty()

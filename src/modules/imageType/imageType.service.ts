@@ -16,7 +16,7 @@ export class ImageTypeService {
 
   async getImageTypeById(id: number): Promise<ImageType | null> {
     return this.prisma.imageType.findFirst({
-      where: { id: id },
+      where: { id },
     });
   }
 }

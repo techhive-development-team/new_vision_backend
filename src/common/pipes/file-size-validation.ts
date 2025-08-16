@@ -4,6 +4,7 @@ import {
   ArgumentMetadata,
   BadRequestException,
 } from '@nestjs/common';
+import { ValidationException } from '../exceptions/validation.exception';
 
 @Injectable()
 export class FileSizeValidationPipe implements PipeTransform {
@@ -14,12 +15,9 @@ export class FileSizeValidationPipe implements PipeTransform {
       return value;
     }
 
-    if (!value.size) {
-      throw new BadRequestException('Invalid file: size not provided.');
-    }
-
     if (value.size > this.maxSizeInBytes) {
-      throw new BadRequestException(
+      throw new ValidationException(
+        'file',
         `File too large. Maximum allowed size is ${this.maxSizeInBytes / 1024}KB`,
       );
     }

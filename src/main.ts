@@ -3,14 +3,16 @@ import { AppModule } from './app.module';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    // logger: false,
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
       exceptionFactory: (errors) => {
-        const formattedErrors = errors.map((err : any) => ({
+        const formattedErrors = errors.map((err: any) => ({
           field: err.property,
           message: Object.values(err.constraints)[0],
         }));

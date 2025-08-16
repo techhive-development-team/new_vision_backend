@@ -1,8 +1,7 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class ImageCreateFileDto {
-  
   @IsString()
   @IsNotEmpty()
   @Transform(({ value }) => value?.trim())
@@ -14,12 +13,12 @@ export class ImageCreateFileDto {
   public subText?: string;
 
   @IsNotEmpty()
-  public imageTypeId: number;
+  public imageTypeId: string;
 
   @IsOptional()
   @IsString()
   public link?: string;
 
-  bg_img: Express.Multer.File;
-  
+  @IsOptional()
+  public bg_img: Express.Multer.File;
 }

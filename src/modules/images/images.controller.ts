@@ -5,21 +5,20 @@ import {
   Body,
   ValidationPipe,
   UseInterceptors,
-  UploadedFiles,
   UploadedFile,
 } from '@nestjs/common';
 import { Image, Prisma } from '@prisma/client';
 import { ImagesService } from './images.service';
-import { ImageCreateFileDto } from './dto/imageCreate.dto';
+import { ImageCreateFileDto } from './dto/create-image.dto';
 import {
-  FileFieldsInterceptor,
   FileInterceptor,
 } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { ImageTypeService } from 'src/modules/imageType/imageType.service';
 import { FileTypeValidationPipe } from 'src/common/pipes/file-type-validation';
 import { FileSizeValidationPipe } from 'src/common/pipes/file-size-validation';
+import { ValidationException } from 'src/common/exceptions/validation.exception';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('images')
 export class ImagesController {
@@ -39,17 +38,48 @@ export class ImagesController {
   }
 
   @Post('upload')
-  @UseInterceptors(FileInterceptor('bg_img'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/images', // folder where files will be saved
+        filename: (req, file, callback) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          callback(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+        },
+      }),
+    }),
+  )
   async uploadFiles(
     @UploadedFile(new FileTypeValidationPipe(), new FileSizeValidationPipe())
     file: Express.Multer.File,
     @Body(new ValidationPipe()) dto: ImageCreateFileDto,
   ): Promise<Image> {
-    return this.imagesService.createImage({
+
+    const imageTypeId = parseInt(dto.imageTypeId);
+    if (isNaN(imageTypeId)) {
+      throw new ValidationException(
+        'imageTypeId',
+        'imageTypeId must be a number',
+      );
+    }
+    const imageType = await this.imageTypeService.getImageTypeById(imageTypeId);
+    if (!imageType) {
+      throw new ValidationException(
+        'imageTypeId',
+        `ImageType with id ${imageTypeId} does not exist.`,
+      );
+    }
+
+    const data: Prisma.ImageCreateInput = {
       mainText: dto.mainText,
       subText: dto.subText,
-      imageType: { connect: { id: parseInt(dto.imageTypeId.toString()) } },
       link: dto.link,
-    });
+      bg_img: file?.filename ?? null,
+      imageType: { connect: { id: imageTypeId } },
+    };
+
+    return this.imagesService.createImage(data);
   }
 }
