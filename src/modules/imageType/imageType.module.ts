@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ImageTypeService } from './image-type.service';
-import { ImageTypeController } from './image-type.controller';
+import { ImageTypeService } from './imageType.service';
+import { ImageTypeController } from './imageType.controller';
 
 @Module({
   providers: [ImageTypeService],

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ImageTypeController } from './image-type.controller';
+import { ImageTypeController } from './imageType.controller';
 
 describe('ImageTypeController', () => {
   let controller: ImageTypeController;

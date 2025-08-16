@@ -36,9 +36,85 @@ model Image {
   imageType   ImageType @relation(fields: [imageTypeId], references: [id])
   link        String?
   bg_img      String?
-  logo_img    String?
-  location    String?
-  foundedDate String?
-  partnerType String?
   createdAt   DateTime  @default(now())
+}
+
+model Courses {
+  id              Int       @id @default(autoincrement())
+  name            String
+  programOverview String
+  quiz            String?
+  skill           String?
+  price           Int?
+  isOpened        Boolean   @default(false)
+  expireDate      DateTime?
+  duration        String
+  location        String
+  level           String
+  createdAt       DateTime  @default(now())
+}
+
+model StudentReview {
+  id                 Int              @id @default(autoincrement())
+  name               String
+  batch              String
+  educationPartnerId Int
+  educationPartner   EducationPartner @relation(fields: [educationPartnerId], references: [id])
+  review             String?
+  createdAt          DateTime         @default(now())
+}
+
+model EducationPartner {
+  id            Int             @id @default(autoincrement())
+  overview      String
+  bg_img        String
+  logo_img      String
+  location      String
+  foundedDate   String?
+  partnerType   String?
+  createdAt     DateTime        @default(now())
+  StudentReview StudentReview[]
+}
+
+model Inquiry {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String
+  phone       String?
+  description String
+  createdAt   DateTime @default(now())
+}
+
+model HappeningType {
+  id        Int         @id @default(autoincrement())
+  typeName  String
+  createdAt DateTime    @default(now())
+  Happening Happening[]
+}
+
+model Happening {
+  id              Int            @id @default(autoincrement())
+  title           String
+  description     String
+  happeningTypeId Int
+  happeningType   HappeningType  @relation(fields: [happeningTypeId], references: [id])
+  mainImage       String
+  albumId         Int
+  album           HappeningAlbum @relation(fields: [albumId], references: [id])
+  createdAt       DateTime       @default(now())
+}
+
+model HappeningAlbum {
+  id         Int              @id @default(autoincrement())
+  createdAt  DateTime         @default(now())
+  images     HappeningImage[]
+  happenings Happening[]
+}
+
+model HappeningImage {
+  id        Int            @id @default(autoincrement())
+  albumId   Int
+  album     HappeningAlbum @relation(fields: [albumId], references: [id])
+  image     String
+  createdAt DateTime       @default(now())
 }
