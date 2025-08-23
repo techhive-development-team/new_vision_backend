@@ -14,10 +14,10 @@ export class AuthService {
   async signIn(loginDto: LoginDto): Promise<string> {
     const user = await this.usersService.getUserByEmail(loginDto.email);
     if (user == null) {
-      throw new AuthenticationException('email', 'Invalid Email.');
+      throw new AuthenticationException(false, 'email', 'Invalid Email.');
     }
     if (user?.password !== loginDto.password) {
-      throw new AuthenticationException('password', 'Invalid Password.');
+      throw new AuthenticationException(false, 'password', 'Invalid Password.');
     }
     const payload = { sub: user.id, username: user.name };
     const jwtToken = await this.jwtService.signAsync(payload);

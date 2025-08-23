@@ -4,7 +4,7 @@ export class ValidationException extends BadRequestException {
   constructor(field: string, message: string) {
     super({
       statusCode: 400,
-      error: 'Validation Error',
+      success: false,
       data: [{ field, message }],
     });
   }
@@ -12,7 +12,7 @@ export class ValidationException extends BadRequestException {
   static multiple(errors: { field: string; message: string }[]) {
     return new BadRequestException({
       statusCode: 400,
-      error: 'Validation Error',
+      success: false,
       data: errors,
     });
   }
