@@ -11,7 +11,7 @@ export class BaseResponse {
 }
 
 export class SuccessResponse extends BaseResponse {
-  constructor(field: string, message: string) {
-    super(200, true, { [field]: message });
+  constructor(data: any, meta?: any) {
+    super(200, true, { data, ...meta });
   }
 }
