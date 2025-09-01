@@ -15,16 +15,16 @@ import { EducationPartnersModule } from './modules/education_partners/education_
 
 @Module({
   imports: [
-    // ServeStaticModule.forRoot(
-    //   {
-    //     rootPath: join(__dirname, '..', 'uploads/images'),
-    //     serveRoot: '/images',
-    //   },
-    //   {
-    //     rootPath: join(__dirname, '..', 'uploads/students'),
-    //     serveRoot: '/students',
-    //   },
-    // ),
+    ServeStaticModule.forRoot(
+      {
+        rootPath: join(__dirname, '..', 'uploads/images'),
+        serveRoot: '/images',
+      },
+      {
+        rootPath: join(__dirname, '..', 'uploads/students'),
+        serveRoot: '/students',
+      },
+    ),
     MulterModule.register({
       dest: './uploads/images',
     }),

@@ -6,19 +6,23 @@ import {
   ValidationPipe,
   UseInterceptors,
   UploadedFile,
+  Query,
+  Delete,
+  Param,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { Image, Prisma } from '@prisma/client';
 import { ImagesService } from './images.service';
 import { ImageCreateFileDto } from './dto/create-image.dto';
-import {
-  FileInterceptor,
-} from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ImageTypeService } from 'src/modules/imageType/imageType.service';
 import { FileTypeValidationPipe } from 'src/common/pipes/file-type-validation';
 import { FileSizeValidationPipe } from 'src/common/pipes/file-size-validation';
 import { ValidationException } from 'src/common/exceptions/validation.exception';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { SuccessResponse } from 'src/common/exceptions/success';
+import { PaginationDto } from 'src/common/dto/pagination-dto';
 
 @Controller('images')
 export class ImagesController {
@@ -28,8 +32,12 @@ export class ImagesController {
   ) {}
 
   @Get()
-  async getImages(): Promise<Image[]> {
-    return this.imagesService.getImages();
+  async getImages(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<SuccessResponse> {
+    const images = await this.imagesService.getImages(paginationDto);
+    const total = await this.imagesService.getTotalImages();
+    return new SuccessResponse(images, { total });
   }
 
   @Get('main')
@@ -55,8 +63,7 @@ export class ImagesController {
     @UploadedFile(new FileTypeValidationPipe(), new FileSizeValidationPipe())
     file: Express.Multer.File,
     @Body(new ValidationPipe()) dto: ImageCreateFileDto,
-  ): Promise<Image> {
-
+  ): Promise<SuccessResponse> {
     const imageTypeId = parseInt(dto.imageTypeId);
     if (isNaN(imageTypeId)) {
       throw new ValidationException(
@@ -80,6 +87,19 @@ export class ImagesController {
       imageType: { connect: { id: imageTypeId } },
     };
 
-    return this.imagesService.createImage(data);
+    const image = await this.imagesService.createImage(data);
+    return new SuccessResponse(image);
+  }
+
+  @Delete(':id')
+  async deleteImage(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<SuccessResponse> {
+    const image = await this.imagesService.getImageById(id);
+    if (!image) {
+      throw new ValidationException('id', 'Image not found.');
+    }
+    await this.imagesService.deleteImage(id);
+    return new SuccessResponse('image', null);
   }
 }
