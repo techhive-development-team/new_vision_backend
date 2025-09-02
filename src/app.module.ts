@@ -12,9 +12,13 @@ import { MulterModule } from '@nestjs/platform-express';
 import { AuthModule } from './modules/auth/auth.module';
 import { EducationPartnersModule } from './modules/education_partners/education_partners.module';
 
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     ServeStaticModule.forRoot(
       {
         rootPath: join(__dirname, '..', 'uploads/images'),
