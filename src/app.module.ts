@@ -16,11 +16,11 @@ import { AuthModule } from './modules/auth/auth.module';
     ServeStaticModule.forRoot(
       {
         rootPath: join(__dirname, '..', 'uploads/images'),
-        serveRoot: '/images',
+        serveRoot: '/uploads/images',
       },
       {
         rootPath: join(__dirname, '..', 'uploads/students'),
-        serveRoot: '/students',
+        serveRoot: '/uploads/students',
       },
     ),
     MulterModule.register({
