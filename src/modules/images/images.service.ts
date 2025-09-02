@@ -48,4 +48,11 @@ export class ImagesService {
   async deleteImage(id: number): Promise<Image> {
     return this.prisma.image.delete({ where: { id } });
   }
+
+  async updateImage(id: number, data: Prisma.ImageUpdateInput): Promise<Image> {
+    return this.prisma.image.update({
+      where: { id },
+      data,
+    });
+  }
 }

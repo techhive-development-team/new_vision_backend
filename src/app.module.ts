@@ -18,11 +18,11 @@ import { EducationPartnersModule } from './modules/education_partners/education_
     ServeStaticModule.forRoot(
       {
         rootPath: join(__dirname, '..', 'uploads/images'),
-        serveRoot: '/images',
+        serveRoot: '/uploads/images',
       },
       {
         rootPath: join(__dirname, '..', 'uploads/students'),
-        serveRoot: '/students',
+        serveRoot: '/uploads/students',
       },
     ),
     MulterModule.register({
