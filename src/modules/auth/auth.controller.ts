@@ -12,6 +12,6 @@ export class AuthController {
     @Body(new ValidationPipe()) loginDto: LoginDto,
   ): Promise<SuccessResponse> {
     const accessToken = await this.authService.signIn(loginDto);
-    return new SuccessResponse('access_token', accessToken);
+    return new SuccessResponse(accessToken);
   }
 }
