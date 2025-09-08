@@ -17,26 +17,23 @@ import { dateTimestampProvider } from 'rxjs/internal/scheduler/dateTimestampProv
 import { CreateImageTypeDto } from './dto/create-imageType.dto';
 import { SuccessResponse } from 'src/common/exceptions/success';
 import { PaginationDto } from 'src/common/dto/pagination-dto';
+import { ImagesService } from '../images/images.service';
 
 @Controller('imageType')
 export class ImageTypeController {
-  constructor(private readonly imageTypeService: ImageTypeService) {}
+  constructor(
+    private readonly imageTypeService: ImageTypeService,
+    private readonly imageService: ImagesService,
+  ) {}
 
   @Post()
   async createImageType(
     @Body(new ValidationPipe()) imageTypeData: CreateImageTypeDto,
   ): Promise<SuccessResponse> {
-    const newImageType =
+    const imageType =
       await this.imageTypeService.createImageType(imageTypeData);
-    return new SuccessResponse('data', newImageType);
+    return new SuccessResponse(imageType);
   }
-
-  //   @Post()
-  //   createImageType(
-  //       @Body(new ValidationPipe()) imageTypeData: CreateImageTypeDto,
-  //     ): Promise<ImageTypeModel> {
-  //       return this.imageTypeService.createImageType(imageTypeData);
-  // }
 
   @Get()
   async getImageTypes(
@@ -71,7 +68,7 @@ export class ImageTypeController {
       id,
       updateData,
     );
-    return new SuccessResponse('data', updatedImageType);
+    return new SuccessResponse(updatedImageType);
   }
 
   @Delete(':id')
@@ -79,10 +76,19 @@ export class ImageTypeController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<SuccessResponse> {
     const imageType = await this.imageTypeService.getImageTypeById(id);
+    const images = await this.imageService.getImagesByTypeId(id);
     if (!imageType) {
       throw new ValidationException('id', 'Image type not found.');
     }
+    if (images.length > 0) {
+      throw new ValidationException(
+        'id',
+        `Cannot delete ImageType ${id}, it is still used in ${images.length} images`,
+      );
+    }
     await this.imageTypeService.deleteImageType(id);
-    return new SuccessResponse('data', null);
+    return new SuccessResponse(null, {
+      message: 'Image type deleted successfully',
+    });
   }
 }

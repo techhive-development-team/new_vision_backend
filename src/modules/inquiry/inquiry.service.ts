@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { CreateInquiryDto } from './dto/create-inquiry.dto';
-import { UpdateInquiryDto } from './dto/update-inquiry.dto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { Inquiry, Prisma } from '@prisma/client';
+import { PaginationDto } from 'src/common/dto/pagination-dto';
 
 @Injectable()
 export class InquiryService {
@@ -12,19 +11,30 @@ export class InquiryService {
     return this.prisma.inquiry.create({ data });
   }
 
-  findAll(): Promise<Inquiry[]> {
-    return this.prisma.inquiry.findMany();
+  async findAll(paginationDto: PaginationDto): Promise<Inquiry[]> {
+    const { limit, offset } = paginationDto;
+    return this.prisma.inquiry.findMany({
+      take: limit,
+      skip: offset,
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} inquiry`;
+  async getTotalInquiries(): Promise<number> {
+    return this.prisma.inquiry.count();
   }
 
-  update(id: number, updateInquiryDto: UpdateInquiryDto) {
-    return `This action updates a #${id} inquiry`;
+  async findOne(id: number) {
+    return this.prisma.inquiry.findUnique({
+      where: { id },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} inquiry`;
+  async remove(id: number) {
+    return this.prisma.inquiry.delete({
+      where: { id },
+    });
   }
 }

@@ -6,11 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { InquiryService } from './inquiry.service';
 import { CreateInquiryDto } from './dto/create-inquiry.dto';
-import { UpdateInquiryDto } from './dto/update-inquiry.dto';
 import { Prisma } from '@prisma/client';
+import { PaginationDto } from 'src/common/dto/pagination-dto';
+import { SuccessResponse } from 'src/common/exceptions/success';
+import { ValidationException } from 'src/common/exceptions/validation.exception';
 
 @Controller('inquiry')
 export class InquiryController {
@@ -23,22 +27,34 @@ export class InquiryController {
   }
 
   @Get()
-  findAll() {
-    return this.inquiryService.findAll();
+  async findAll(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<SuccessResponse> {
+    const inquiries = await this.inquiryService.findAll(paginationDto);
+    const total = await this.inquiryService.getTotalInquiries();
+    return new SuccessResponse(inquiries, { total });
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.inquiryService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateInquiryDto: UpdateInquiryDto) {
-    return this.inquiryService.update(+id, updateInquiryDto);
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<SuccessResponse> {
+    const inquiry = await this.inquiryService.findOne(id);
+    if (!inquiry) {
+      throw new ValidationException('id', 'Inquiry not found');
+    }
+    return new SuccessResponse(inquiry);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.inquiryService.remove(+id);
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<SuccessResponse> {
+    const inquiry = await this.inquiryService.findOne(id);
+    if (!inquiry) {
+      throw new ValidationException('id', 'Inquiry not found');
+    }
+    await this.inquiryService.remove(id);
+    return new SuccessResponse('data', null);
   }
 }
