@@ -7,7 +7,6 @@ import {
   Param,
   Body,
   ParseIntPipe,
-  UseGuards,
   Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -29,7 +28,7 @@ export class UsersController {
       throw new ValidationException('email', 'Email already exists.');
     }
     const newUser = await this.usersService.createUser(userData);
-    return new SuccessResponse('data', newUser);
+    return new SuccessResponse(newUser);
   }
 
   @Get()
@@ -69,7 +68,7 @@ export class UsersController {
       throw new ValidationException('email', 'Email already exists.');
     }
     const updatedUser = await this.usersService.updateUser(id, userData);
-    return new SuccessResponse('data', updatedUser);
+    return new SuccessResponse(updatedUser);
   }
 
   @Delete(':id')
@@ -81,6 +80,6 @@ export class UsersController {
       throw new ValidationException('id', 'User not found.');
     }
     await this.usersService.deleteUser(id);
-    return new SuccessResponse('data', null);
+    return new SuccessResponse(user);
   }
 }

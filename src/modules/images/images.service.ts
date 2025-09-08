@@ -27,6 +27,13 @@ export class ImagesService {
     return this.prisma.image.create({ data });
   }
 
+  async getImagesByTypeId(imageTypeId: number): Promise<Image[]> {
+    return this.prisma.image.findMany({
+      where: { imageTypeId },
+      include: { imageType: true },
+    });
+  }
+
   async getMainImage() {
     return this.prisma.imageType.findMany({
       include: {

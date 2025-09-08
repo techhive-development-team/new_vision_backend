@@ -11,14 +11,13 @@ export class UsersService {
     return this.prisma.user.create({ data });
   }
 
-  // service
   async getUsers(paginationDto: PaginationDto): Promise<User[]> {
     const { limit = 10, offset = 0 } = paginationDto;
     return this.prisma.user.findMany({
       take: limit,
       skip: offset,
       orderBy: {
-        // createdAt: 'desc',
+        createdAt: 'desc',
       },
     });
   }

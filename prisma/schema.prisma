@@ -25,7 +25,6 @@ model ImageType {
   id        Int      @id @default(autoincrement())
   typeName  String
   createdAt DateTime @default(now())
-
   images Image[]
 }
 
@@ -45,7 +44,7 @@ model Courses {
   name            String
   programOverview String
   quiz            String?
-  skill           String?
+  skills          String[]
   price           Int?
   isOpened        Boolean   @default(false)
   expireDate      DateTime?
@@ -53,6 +52,7 @@ model Courses {
   location        String
   level           String
   createdAt       DateTime  @default(now())
+  image           String?
 }
 
 model StudentReview {

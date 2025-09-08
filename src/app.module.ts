@@ -11,6 +11,7 @@ import { InquiryModule } from './modules/inquiry/inquiry.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { CoursesModule } from './modules/courses/courses.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ConfigModule } from '@nestjs/config';
     ImagesModule,
     InquiryModule,
     AuthModule,
+    CoursesModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
