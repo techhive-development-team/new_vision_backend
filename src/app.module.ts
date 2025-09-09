@@ -25,8 +25,8 @@ import { HappeningTypeModule } from './modules/happeningType/happeningType.modul
         serveRoot: '/uploads/images',
       },
       {
-        rootPath: join(__dirname, '..', 'uploads/students'),
-        serveRoot: '/uploads/students',
+        rootPath: join(__dirname, '..', 'uploads/courses'),
+        serveRoot: '/uploads/courses',
       },
     ),
     MulterModule.register({
