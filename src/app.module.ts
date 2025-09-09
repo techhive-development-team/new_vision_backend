@@ -14,6 +14,7 @@ import { EducationPartnersModule } from './modules/education_partners/education_
 
 import { ConfigModule } from '@nestjs/config';
 import { CoursesModule } from './modules/courses/courses.module';
+import { HappeningTypeModule } from './modules/happeningType/happeningType.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { CoursesModule } from './modules/courses/courses.module';
     UsersModule,
     ImageTypeModule,
     ImagesModule,
+    HappeningTypeModule,
     InquiryModule,
     AuthModule,
     EducationPartnersModule,
