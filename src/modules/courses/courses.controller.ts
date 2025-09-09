@@ -31,7 +31,7 @@ export class CoursesController {
 
   @Post()
   @UseInterceptors(
-    FileInterceptor('file', {
+    FileInterceptor('image', {
       storage: diskStorage({
         destination: './uploads/courses',
         filename: (req, file, callback) => {
@@ -45,10 +45,10 @@ export class CoursesController {
   )
   async create(
     @UploadedFile(new FileTypeValidationPipe(), new FileSizeValidationPipe())
-    file: Express.Multer.File,
+    image: Express.Multer.File,
     @Body(new ValidationPipe()) createCourseDto: CreateCourseDto,
   ): Promise<SuccessResponse> {
-    createCourseDto['image'] = file?.filename;
+    createCourseDto['image'] = image?.filename;
     const course = await this.coursesService.create(createCourseDto);
     return new SuccessResponse(course);
   }
@@ -75,7 +75,7 @@ export class CoursesController {
 
   @Put(':id')
   @UseInterceptors(
-    FileInterceptor('file', {
+    FileInterceptor('image', {
       storage: diskStorage({
         destination: './uploads/images',
         filename: (req, file, callback) => {
@@ -89,7 +89,7 @@ export class CoursesController {
   )
   async update(
     @UploadedFile(new FileTypeValidationPipe(), new FileSizeValidationPipe())
-    file: Express.Multer.File,
+    image: Express.Multer.File,
     @Param('id', ParseIntPipe) id: number,
     @Body(new ValidationPipe()) updateCourseDto: UpdateCourseDto,
   ): Promise<SuccessResponse> {
@@ -98,7 +98,7 @@ export class CoursesController {
       throw new ValidationException('id', 'Course not found.');
     }
 
-    if (file && course.image) {
+    if (image && course.image) {
       const oldFilePath = join('./uploads/images', course.image);
       try {
         await fs.access(oldFilePath);
