@@ -68,8 +68,8 @@ model StudentReview {
 model EducationPartner {
   id            Int             @id @default(autoincrement())
   overview      String
-  bg_img        String
-  logo_img      String
+  bg_img        String?
+  logo_img      String?
   location      String
   foundedDate   String?
   partnerType   String?

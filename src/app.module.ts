@@ -13,6 +13,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { CoursesModule } from './modules/courses/courses.module';
 import { HappeningTypeModule } from './modules/happeningType/happeningType.module';
+import { EducationPartnersModule } from './modules/education_partners/education_partners.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { HappeningTypeModule } from './modules/happeningType/happeningType.modul
     HappeningTypeModule,
     InquiryModule,
     AuthModule,
+    EducationPartnersModule,
     CoursesModule,
   ],
   controllers: [AppController],
