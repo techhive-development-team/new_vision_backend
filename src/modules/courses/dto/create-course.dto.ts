@@ -4,11 +4,9 @@ import {
   IsOptional,
   IsBoolean,
   IsDate,
-  IsInt,
   IsArray,
   IsNumber,
   Min,
-  Max,
   Length,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';

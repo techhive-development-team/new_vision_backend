@@ -56,7 +56,7 @@ export class ImagesController {
 
   @Put(':id')
   @UseInterceptors(
-    FileInterceptor('file', {
+    FileInterceptor('bg_img', {
       storage: diskStorage({
         destination: './uploads/images',
         filename: (req, file, callback) => {
@@ -70,7 +70,7 @@ export class ImagesController {
   )
   async updateImage(
     @UploadedFile(new FileTypeValidationPipe(), new FileSizeValidationPipe())
-    file: Express.Multer.File,
+    bg_img: Express.Multer.File,
     @Param('id', ParseIntPipe) id: number,
     @Body(new ValidationPipe()) dto: ImageCreateFileDto,
   ): Promise<SuccessResponse> {
@@ -81,6 +81,7 @@ export class ImagesController {
         'imageTypeId must be a number',
       );
     }
+
     const imageType = await this.imageTypeService.getImageTypeById(imageTypeId);
     if (!imageType) {
       throw new ValidationException(
@@ -88,13 +89,14 @@ export class ImagesController {
         `ImageType with id ${imageTypeId} does not exist.`,
       );
     }
+
     const image = await this.imagesService.getImageById(id);
     if (!image) {
       throw new ValidationException('id', 'Image not found.');
     }
 
-    // DELETE OLD IMAGE
-    if (file && image.bg_img) {
+    // Delete old file if a new one is uploaded and it's different
+    if (bg_img?.filename && image.bg_img && bg_img.filename !== image.bg_img) {
       const oldFilePath = join('./uploads/images', image.bg_img);
       try {
         await fs.access(oldFilePath);
@@ -105,20 +107,22 @@ export class ImagesController {
         );
       }
     }
+
     const data: Prisma.ImageUpdateInput = {
       mainText: dto.mainText,
       subText: dto.subText,
       link: dto.link,
-      bg_img: file?.filename ?? null,
+      bg_img: bg_img?.filename ?? image.bg_img ?? null, // keep old file if no new upload
       imageType: { connect: { id: imageTypeId } },
     };
+
     const updatedImage = await this.imagesService.updateImage(id, data);
     return new SuccessResponse(updatedImage);
   }
 
   @Post('upload')
   @UseInterceptors(
-    FileInterceptor('file', {
+    FileInterceptor('bg_img', {
       storage: diskStorage({
         destination: './uploads/images', // folder where files will be saved
         filename: (req, file, callback) => {
@@ -132,7 +136,7 @@ export class ImagesController {
   )
   async uploadFiles(
     @UploadedFile(new FileTypeValidationPipe(), new FileSizeValidationPipe())
-    file: Express.Multer.File,
+    bg_img: Express.Multer.File,
     @Body(new ValidationPipe()) dto: ImageCreateFileDto,
   ): Promise<SuccessResponse> {
     const imageTypeId = parseInt(dto.imageTypeId);
@@ -154,7 +158,7 @@ export class ImagesController {
       mainText: dto.mainText,
       subText: dto.subText,
       link: dto.link,
-      bg_img: file?.filename ?? null,
+      bg_img: bg_img?.filename ?? null,
       imageType: { connect: { id: imageTypeId } },
     };
 

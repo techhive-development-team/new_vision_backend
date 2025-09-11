@@ -77,7 +77,7 @@ export class CoursesController {
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
-        destination: './uploads/images',
+        destination: './uploads/courses',
         filename: (req, file, callback) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -98,8 +98,8 @@ export class CoursesController {
       throw new ValidationException('id', 'Course not found.');
     }
 
-    if (image && course.image) {
-      const oldFilePath = join('./uploads/images', course.image);
+    if (image?.filename && course.image && image.filename !== course.image) {
+      const oldFilePath = join('./uploads/course', course.image);
       try {
         await fs.access(oldFilePath);
         await fs.unlink(oldFilePath);
@@ -109,6 +109,14 @@ export class CoursesController {
         );
       }
     }
+    updateCourseDto['image'] = image?.filename;
+    if (
+      updateCourseDto.skills?.length === 1 &&
+      updateCourseDto.skills[0] === ''
+    ) {
+      updateCourseDto.skills = [];
+    }
+
     const updatedCourse = await this.coursesService.update(id, updateCourseDto);
     return new SuccessResponse(updatedCourse);
   }
