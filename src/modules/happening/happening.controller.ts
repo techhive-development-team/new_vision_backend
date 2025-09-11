@@ -1,4 +1,3 @@
-// happenings.controller.ts
 import {
   Controller,
   Post,
@@ -11,18 +10,18 @@ import {
   ParseIntPipe,
   ValidationPipe,
   UseInterceptors,
-  UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname, join } from 'path';
-import { promises as fs } from 'fs';
+import { extname } from 'path';
 import { Prisma } from '@prisma/client';
 import { HappeningsService } from './happening.service';
 import { HappeningTypeService } from 'src/modules/happeningType/happeningType.service';
 import { CreateHappeningDto } from './dto/create-happening.dto';
-import { FileTypeValidationPipe } from 'src/common/pipes/file-type-validation';
-import { FileSizeValidationPipe } from 'src/common/pipes/file-size-validation';
 import { ValidationException } from 'src/common/exceptions/validation.exception';
 import { SuccessResponse } from 'src/common/exceptions/success';
 import { PaginationDto } from 'src/common/dto/pagination-dto';
@@ -53,51 +52,64 @@ export class HappeningsController {
     return new SuccessResponse(happening);
   }
 
+  // TODO File Validation
   @Post('upload')
   @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/happenings',
-        filename: (req, file, callback) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const ext = extname(file.originalname);
-          callback(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
-        },
-      }),
-    }),
+    FileFieldsInterceptor(
+      [
+        { name: 'bg_image', maxCount: 1 },
+        { name: 'album_images', maxCount: 10 },
+      ],
+      {
+        storage: diskStorage({
+          destination: './uploads/happenings',
+          filename: (req, file, cb) => {
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const ext = extname(file.originalname);
+            cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+          },
+        }),
+      },
+    ),
   )
   async uploadHappening(
-    @UploadedFile(new FileTypeValidationPipe(), new FileSizeValidationPipe())
-    file: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      bg_image?: Express.Multer.File[];
+      album_images?: Express.Multer.File[];
+    },
     @Body(new ValidationPipe()) dto: CreateHappeningDto,
   ): Promise<SuccessResponse> {
-    if (!file) throw new ValidationException('file', 'File is required');
-
-    const happeningTypeId = parseInt(dto.happeningTypeId);
-    if (isNaN(happeningTypeId))
+    const oldHappeningTypeId = parseInt(dto.happeningTypeId);
+    if (isNaN(oldHappeningTypeId)) {
       throw new ValidationException(
         'happeningTypeId',
         'happeningTypeId must be a number',
       );
-
-    const happeningType =
-      await this.happeningTypeService.getHappeningTypeById(happeningTypeId);
-    if (!happeningType)
+    }
+    const happeningType = await this.happeningTypeService.getHappeningTypeById(oldHappeningTypeId);
+    if (!happeningType) {
       throw new ValidationException(
         'happeningTypeId',
-        `HappeningType with id ${happeningTypeId} does not exist`,
+        `happeningTypeId with id ${happeningType} does not exist.`,
       );
-
-    const data: Prisma.HappeningCreateInput = {
+    }
+    const bgImage = files.bg_image?.[0];
+    const albumImages = files.album_images?.map((f) => f.filename) || [];
+    if (!bgImage) throw new ValidationException('bg_image', 'File is required');
+    const happeningTypeId = parseInt(dto.happeningTypeId);
+    const album = await this.happeningsService.createHappeningAlbum();
+    if (albumImages.length > 0) {
+      await this.happeningsService.createHappeningImages(album.id, albumImages);
+    }
+    const happening = await this.happeningsService.createHappening({
       title: dto.title,
       description: dto.description,
-      mainImage: file?.filename,
-      happeningType: { connect: { id: happeningTypeId } },
-      album: { connect: { id: 1 } }, // default album
-    };
-
-    const happening = await this.happeningsService.createHappening(data);
+      mainImage: bgImage.filename,
+      happeningTypeId,
+      albumId: album.id,
+    });
     return new SuccessResponse(happening);
   }
 
