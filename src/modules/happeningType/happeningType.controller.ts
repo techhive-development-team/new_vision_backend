@@ -17,7 +17,7 @@ import { CreateHappeningTypeDto } from './dto/create-happeningType.dto';
 import { SuccessResponse } from 'src/common/exceptions/success';
 import { PaginationDto } from 'src/common/dto/pagination-dto';
 
-@Controller('happeningType')
+@Controller('happeningTypes')
 export class HappeningTypeController {
   constructor(private readonly happeningTypeService: HappeningTypeService) {}
 
