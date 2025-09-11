@@ -10,13 +10,10 @@ import { ImagesModule } from './modules/images/images.module';
 import { InquiryModule } from './modules/inquiry/inquiry.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { AuthModule } from './modules/auth/auth.module';
-import { EducationPartnersModule } from './modules/education_partners/education_partners.module';
-
 import { ConfigModule } from '@nestjs/config';
 import { CoursesModule } from './modules/courses/courses.module';
 import { HappeningTypeModule } from './modules/happeningType/happeningType.module';
 import { EducationPartnersModule } from './modules/education_partners/education_partners.module';
-
 
 @Module({
   imports: [
@@ -44,7 +41,6 @@ import { EducationPartnersModule } from './modules/education_partners/education_
     AuthModule,
     EducationPartnersModule,
     CoursesModule,
-    EducationPartnersModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
