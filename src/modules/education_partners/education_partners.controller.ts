@@ -73,7 +73,7 @@ export class EducationPartnersController {
     ),
   )
   async createWithFiles(
-    @UploadedFiles(new FileTypeValidationPipe(), new FileSizeValidationPipe())
+    @UploadedFiles()
     files: { logo_img?: Express.Multer.File[]; bg_img?: Express.Multer.File[] },
     @Body(new ValidationPipe()) createDto: CreateEducationPartnerDto,
   ): Promise<SuccessResponse> {
@@ -115,7 +115,7 @@ export class EducationPartnersController {
     ),
   )
   async update(
-    @UploadedFiles(new FileTypeValidationPipe(), new FileSizeValidationPipe())
+    @UploadedFiles()
     files: { logo_img?: Express.Multer.File[]; bg_img?: Express.Multer.File[] },
     @Param('id', ParseIntPipe) id: number,
     @Body(new ValidationPipe()) updateDto: UpdateEducationPartnerDto,
