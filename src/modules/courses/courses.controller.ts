@@ -29,6 +29,12 @@ import { ValidationException } from 'src/common/exceptions/validation.exception'
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
+  @Get('/front')
+  async getDataFromFront(): Promise<SuccessResponse> {
+    const data = await this.coursesService.getCoursesGroupedByIsOpened();
+    return new SuccessResponse(data);
+  }
+
   @Post()
   @UseInterceptors(
     FileInterceptor('image', {
