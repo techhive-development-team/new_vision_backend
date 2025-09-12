@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { EducationPartner, Prisma } from '@prisma/client';
 import { EducationPartnersService } from './education_partners.service';
@@ -19,9 +20,11 @@ import { UpdateEducationPartnerDto } from './dto/update-education_partner.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { JwtAuthGuard } from 'src/config/jwt/jwt-auth.guard';
 import { ValidationException } from 'src/common/exceptions/validation.exception';
 import { SuccessResponse } from 'src/common/exceptions/success';
+import { PaginationDto } from 'src/common/dto/pagination-dto';
+import { FileTypeValidationPipe } from 'src/common/pipes/file-type-validation';
+import { FileSizeValidationPipe } from 'src/common/pipes/file-size-validation';
 
 @Controller('education-partners')
 export class EducationPartnersController {
@@ -30,26 +33,40 @@ export class EducationPartnersController {
   ) {}
 
   @Get()
-  async findAll(): Promise<EducationPartner[]> {
-    return this.educationPartnersService.findAll();
+  async findAll(
+    @Query() paginationDto: PaginationDto,
+  ): Promise<SuccessResponse> {
+    const partners = await this.educationPartnersService.findAll(paginationDto);
+    const total = await this.educationPartnersService.findtotal();
+    return new SuccessResponse(partners, { total });
+  }
+
+  @Get(':id')
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<SuccessResponse> {
+    const partner = await this.educationPartnersService.findOne(id);
+    if (!partner) {
+      throw new ValidationException('id', 'EducationPartner not found.');
+    }
+    return new SuccessResponse(partner);
   }
 
   @Post('upload')
   @UseInterceptors(
     FileFieldsInterceptor(
       [
-        { name: 'logo_img', maxCount: 10 },
-        { name: 'bg_img', maxCount: 10 },
+        { name: 'logo_img', maxCount: 1 },
+        { name: 'bg_img', maxCount: 1 },
       ],
       {
         storage: diskStorage({
           destination: './uploads/education-partners',
           filename: (req, file, callback) => {
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const random = Math.floor(Math.random() * 1e6);
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
             const ext = extname(file.originalname);
-            const uniqueName = `${file.fieldname}-${timestamp}-${random}${ext}`;
-            callback(null, uniqueName);
+            callback(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
           },
         }),
       },
@@ -59,60 +76,150 @@ export class EducationPartnersController {
     @UploadedFiles()
     files: { logo_img?: Express.Multer.File[]; bg_img?: Express.Multer.File[] },
     @Body(new ValidationPipe()) createDto: CreateEducationPartnerDto,
-  ) {
-    const data = {
-      ...createDto,
-      logo_img: files.logo_img?.[0]?.filename ?? null,
-      bg_img: files.bg_img?.[0]?.filename ?? null,
-    };
-    return this.educationPartnersService.create(data);
-  }
+  ): Promise<SuccessResponse> {
+    if (!files.logo_img || !files.logo_img[0]) {
+      throw new ValidationException('logo_img', 'Logo image is required.');
+    }
+    if (!files.bg_img || !files.bg_img[0]) {
+      throw new ValidationException('bg_img', 'Background image is required.');
+    }
 
-  @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<EducationPartner> {
-    return this.educationPartnersService.findOne(id);
+    const data: Prisma.EducationPartnerCreateInput = {
+      ...createDto,
+      logo_img: files.logo_img[0].filename,
+      bg_img: files.bg_img[0].filename,
+    };
+    const partner = await this.educationPartnersService.create(data);
+
+    return new SuccessResponse(partner);
   }
 
   @Patch(':id')
   @UseInterceptors(
     FileFieldsInterceptor(
       [
-        {name: 'logo_img', maxCount:1},
-       { name: 'bg_img', maxCount:1},  
+        { name: 'logo_img', maxCount: 1 },
+        { name: 'bg_img', maxCount: 1 },
       ],
       {
         storage: diskStorage({
           destination: './uploads/education-partners',
           filename: (req, file, callback) => {
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
             const ext = extname(file.originalname);
-            const uniqueName = `${file.fieldname}-${timestamp}-${ext}`;
-            callback(null, uniqueName);
+            callback(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
           },
         }),
       },
-    )
+    ),
   )
   async update(
-    @Param('id', ParseIntPipe) id: number,
     @UploadedFiles()
-    files: { logo_img?: Express.Multer.File[]; bg_img?: Express.Multer.File[]},
+    files: { logo_img?: Express.Multer.File[]; bg_img?: Express.Multer.File[] },
+    @Param('id', ParseIntPipe) id: number,
     @Body(new ValidationPipe()) updateDto: UpdateEducationPartnerDto,
-  ): Promise<EducationPartner> {
-    const data = {
+  ): Promise<SuccessResponse> {
+    const partner = await this.educationPartnersService.findOne(id);
+    if (!partner) {
+      throw new ValidationException(
+        'id',
+        `EducationPartner with ID ${id} not found.`,
+      );
+    }
+
+    const fs = require('fs').promises;
+    const path = require('path');
+
+    const logo_img_filename = files.logo_img?.[0]?.filename;
+    if (
+      logo_img_filename &&
+      partner.logo_img &&
+      logo_img_filename !== partner.logo_img
+    ) {
+      const oldLogoPath = path.join(
+        './uploads/education-partners',
+        partner.logo_img,
+      );
+      try {
+        await fs.access(oldLogoPath);
+        await fs.unlink(oldLogoPath);
+      } catch (err) {
+        console.warn(
+          `Old logo file not found or already deleted: ${oldLogoPath}`,
+        );
+      }
+    }
+
+    const bg_img_filename = files.bg_img?.[0]?.filename;
+    if (
+      bg_img_filename &&
+      partner.bg_img &&
+      bg_img_filename !== partner.bg_img
+    ) {
+      const oldBgPath = path.join(
+        './uploads/education-partners',
+        partner.bg_img,
+      );
+      try {
+        await fs.access(oldBgPath);
+        await fs.unlink(oldBgPath);
+      } catch (err) {
+        console.warn(
+          `Old background file not found or already deleted: ${oldBgPath}`,
+        );
+      }
+    }
+
+    const data: Prisma.EducationPartnerUpdateInput = {
       ...updateDto,
-      logo_img: files.logo_img?.[0]?.filename ?? undefined,
-      bg_img: files.bg_img?.[0]?.filename ?? undefined,
+      logo_img: logo_img_filename ?? partner.logo_img ?? null,
+      bg_img: bg_img_filename ?? partner.bg_img ?? null,
     };
-    return this.educationPartnersService.update(id, data);
+
+    const updatedPartner = await this.educationPartnersService.update(id, data);
+    return new SuccessResponse(updatedPartner);
   }
 
   @Delete(':id')
-  async removeEventListener(@Param('id', ParseIntPipe) id: number): Promise<SuccessResponse>{
-    const educationPartner = this.educationPartnersService.remove(id);
-    return new SuccessResponse("Message", "educationPartner  deleted successfull" );
+  async removeEventListener(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<SuccessResponse> {
+    const partner = await this.educationPartnersService.findOne(id);
+    if (!partner) {
+      throw new ValidationException(
+        'id',
+        `EducationPartner with ID ${id} not found.`,
+      );
+    }
+    const fs = require('fs').promises;
+    const path = require('path');
+
+    if (partner.logo_img) {
+      const logoPath = path.join(
+        './uploads/education-partners',
+        partner.logo_img,
+      );
+      try {
+        await fs.access(logoPath);
+        await fs.unlink(logoPath);
+      } catch (err) {
+        console.warn(`Old logo file not found or already deleted: ${logoPath}`);
+      }
+    }
+    if (partner.bg_img) {
+      const bgPath = path.join('./uploads/education-partners', partner.bg_img);
+      try {
+        await fs.access(bgPath);
+        await fs.unlink(bgPath);
+      } catch (err) {
+        console.warn(
+          `Old background file not found or already deleted: ${bgPath}`,
+        );
+      }
+    }
+
+    await this.educationPartnersService.remove(id);
+    return new SuccessResponse('educationPartner', 'Deleted successfully');
   }
-  
 }
-
-
