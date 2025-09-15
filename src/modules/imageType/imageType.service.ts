@@ -16,9 +16,7 @@ export class ImageTypeService {
     return this.prisma.imageType.findMany({
       skip: offset,
       take: limit,
-      orderBy: {
-        
-      },
+      orderBy: {},
     });
   }
 
@@ -32,7 +30,10 @@ export class ImageTypeService {
     });
   }
 
-  async updateImageType(id: number, data: Prisma.ImageTypeUpdateInput): Promise<ImageType> {
+  async updateImageType(
+    id: number,
+    data: Prisma.ImageTypeUpdateInput,
+  ): Promise<ImageType> {
     return this.prisma.imageType.update({
       where: { id },
       data,
@@ -41,5 +42,14 @@ export class ImageTypeService {
 
   async deleteImageType(id: number): Promise<ImageType> {
     return this.prisma.imageType.delete({ where: { id } });
+  }
+
+  async getImageById(id: number): Promise<ImageType | null> {
+    return this.prisma.imageType.findFirst({
+      where: { id },
+      include: {
+        images: true,
+      },
+    });
   }
 }

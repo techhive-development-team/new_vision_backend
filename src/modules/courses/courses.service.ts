@@ -48,4 +48,16 @@ export class CoursesService {
       where: { id },
     });
   }
+
+  async getCoursesGroupedByIsOpened() {
+    const opened = await this.prisma.courses.findMany({
+      where: { isOpened: true },
+    });
+
+    const closed = await this.prisma.courses.findMany({
+      where: { isOpened: false },
+    });
+
+    return { opened, closed };
+  }
 }

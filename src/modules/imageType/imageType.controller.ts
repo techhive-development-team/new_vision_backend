@@ -91,4 +91,15 @@ export class ImageTypeController {
       message: 'Image type deleted successfully',
     });
   }
+
+  @Get('/main/:id')
+  async getImagesByImageType(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<SuccessResponse> {
+    const imageType = await this.imageTypeService.getImageById(id);
+    if (!imageType) {
+      throw new ValidationException('id', 'Image type not found.');
+    }
+    return new SuccessResponse(imageType);
+  }
 }

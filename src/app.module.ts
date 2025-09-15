@@ -14,6 +14,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CoursesModule } from './modules/courses/courses.module';
 import { HappeningTypeModule } from './modules/happeningType/happeningType.module';
 import { HappeningsModule } from './modules/happening/happening.module';
+import { EducationPartnersModule } from './modules/education_partners/education_partners.module';
 
 @Module({
   imports: [
@@ -26,8 +27,8 @@ import { HappeningsModule } from './modules/happening/happening.module';
         serveRoot: '/uploads/images',
       },
       {
-        rootPath: join(__dirname, '..', 'uploads/students'),
-        serveRoot: '/uploads/students',
+        rootPath: join(__dirname, '..', 'uploads/courses'),
+        serveRoot: '/uploads/courses',
       },
     ),
     MulterModule.register({
@@ -40,6 +41,7 @@ import { HappeningsModule } from './modules/happening/happening.module';
     HappeningsModule,
     InquiryModule,
     AuthModule,
+    EducationPartnersModule,
     CoursesModule,
   ],
   controllers: [AppController],

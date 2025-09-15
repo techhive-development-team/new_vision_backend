@@ -29,9 +29,15 @@ import { ValidationException } from 'src/common/exceptions/validation.exception'
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
+  @Get('/front')
+  async getDataFromFront(): Promise<SuccessResponse> {
+    const data = await this.coursesService.getCoursesGroupedByIsOpened();
+    return new SuccessResponse(data);
+  }
+
   @Post()
   @UseInterceptors(
-    FileInterceptor('file', {
+    FileInterceptor('image', {
       storage: diskStorage({
         destination: './uploads/courses',
         filename: (req, file, callback) => {
@@ -45,10 +51,10 @@ export class CoursesController {
   )
   async create(
     @UploadedFile(new FileTypeValidationPipe(), new FileSizeValidationPipe())
-    file: Express.Multer.File,
+    image: Express.Multer.File,
     @Body(new ValidationPipe()) createCourseDto: CreateCourseDto,
   ): Promise<SuccessResponse> {
-    createCourseDto['image'] = file?.filename;
+    createCourseDto['image'] = image?.filename;
     const course = await this.coursesService.create(createCourseDto);
     return new SuccessResponse(course);
   }
@@ -75,9 +81,9 @@ export class CoursesController {
 
   @Put(':id')
   @UseInterceptors(
-    FileInterceptor('file', {
+    FileInterceptor('image', {
       storage: diskStorage({
-        destination: './uploads/images',
+        destination: './uploads/courses',
         filename: (req, file, callback) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
@@ -89,7 +95,7 @@ export class CoursesController {
   )
   async update(
     @UploadedFile(new FileTypeValidationPipe(), new FileSizeValidationPipe())
-    file: Express.Multer.File,
+    image: Express.Multer.File,
     @Param('id', ParseIntPipe) id: number,
     @Body(new ValidationPipe()) updateCourseDto: UpdateCourseDto,
   ): Promise<SuccessResponse> {
@@ -98,8 +104,8 @@ export class CoursesController {
       throw new ValidationException('id', 'Course not found.');
     }
 
-    if (file && course.image) {
-      const oldFilePath = join('./uploads/images', course.image);
+    if (image?.filename && course.image && image.filename !== course.image) {
+      const oldFilePath = join('./uploads/course', course.image);
       try {
         await fs.access(oldFilePath);
         await fs.unlink(oldFilePath);
@@ -109,6 +115,14 @@ export class CoursesController {
         );
       }
     }
+    updateCourseDto['image'] = image?.filename;
+    if (
+      updateCourseDto.skills?.length === 1 &&
+      updateCourseDto.skills[0] === ''
+    ) {
+      updateCourseDto.skills = [];
+    }
+
     const updatedCourse = await this.coursesService.update(id, updateCourseDto);
     return new SuccessResponse(updatedCourse);
   }
