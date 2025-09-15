@@ -30,6 +30,10 @@ import { EducationPartnersModule } from './modules/education_partners/education_
         rootPath: join(__dirname, '..', 'uploads/courses'),
         serveRoot: '/uploads/courses',
       },
+      {
+        rootPath: join(__dirname, '..', 'uploads/education-partners'),
+        serveRoot: '/uploads/education-partners/',
+      },
     ),
     MulterModule.register({
       dest: './uploads/images',
