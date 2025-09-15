@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { IsString, IsOptional, IsNotEmpty, IsEnum } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { PartnerType } from '@prisma/client';
 
@@ -18,11 +18,15 @@ export class CreateEducationPartnerDto {
   })
   partnerType: PartnerType;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @Transform(({ value }) => value?.trim())
-  foundedDate: string;
+  foundedDate?: string;
 
+  // file fields handled separately
+  @IsOptional()
   bg_img?: Express.Multer.File;
+
+  @IsOptional()
   logo_img?: Express.Multer.File;
 }
