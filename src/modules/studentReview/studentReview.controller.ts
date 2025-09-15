@@ -1,4 +1,4 @@
-import { Prisma, StudentReview } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { StudentReviewService } from './studentReview.service';
 import { ValidationException } from './../../common/exceptions/validation.exception';
 import {
@@ -23,14 +23,12 @@ export class StudentReviewController {
   constructor(
     private readonly studentReviewService: StudentReviewService,
     private readonly educationPartnersService: EducationPartnersService,
-) {}
+  ) {}
 
-  
-@Post()
+  @Post()
   async createStudentReview(
     @Body(new ValidationPipe()) dto: CreateStudentReviewDto,
   ): Promise<SuccessResponse> {
-
     const educationPartnerId = parseInt(dto.educationPartnerId);
     if (isNaN(educationPartnerId)) {
       throw new ValidationException(
@@ -39,16 +37,14 @@ export class StudentReviewController {
       );
     }
 
-    const educationPartner = await this.educationPartnersService.findOne(educationPartnerId);
+    const educationPartner =
+      await this.educationPartnersService.findOne(educationPartnerId);
     if (!educationPartner) {
       throw new ValidationException(
         'educationPartnerId',
         `EducationPartner with id ${educationPartnerId} does not exist.`,
       );
     }
-
-    console.log(educationPartnerId);
-
     const data: Prisma.StudentReviewCreateInput = {
       name: dto.name,
       batch: dto.batch,
@@ -56,7 +52,6 @@ export class StudentReviewController {
       educationPartner: { connect: { id: educationPartnerId } },
     };
 
-    console.log(data);
     const review = await this.studentReviewService.createStudentReview(data);
     return new SuccessResponse(review);
   }
@@ -65,18 +60,18 @@ export class StudentReviewController {
   async getStudentReview(
     @Query() paginationDto: PaginationDto,
   ): Promise<SuccessResponse> {
-    const StudentReview =
+    const reviews =
       await this.studentReviewService.getStudentReview(paginationDto);
     const total = await this.studentReviewService.getTotalStudentReview();
-    return new SuccessResponse(StudentReview, { total });
+
+    return new SuccessResponse(reviews, { total });
   }
 
   @Get(':id')
-  async getStudentReviewById(@Param('id', ParseIntPipe) id: number): Promise<SuccessResponse> {
+  async getStudentReviewById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<SuccessResponse> {
     const review = await this.studentReviewService.getStudentReviewById(id);
-    if (!review) {
-      throw new ValidationException('id', 'StudentReview not found.');
-    }
     return new SuccessResponse(review);
   }
 
@@ -93,17 +88,13 @@ export class StudentReviewController {
       );
     }
 
-    const educationPartner = await this.educationPartnersService.findOne(educationPartnerId);
+    const educationPartner =
+      await this.educationPartnersService.findOne(educationPartnerId);
     if (!educationPartner) {
       throw new ValidationException(
         'educationPartnerId',
         `EducationPartner with id ${educationPartnerId} does not exist.`,
       );
-    }
-
-    const studentReview = await this.studentReviewService.getStudentReviewById(id);
-    if (!studentReview) {
-      throw new ValidationException('id', 'StudentReview not found.');
     }
 
     const data: Prisma.StudentReviewUpdateInput = {
@@ -112,20 +103,18 @@ export class StudentReviewController {
       review: dto.review,
       educationPartner: { connect: { id: educationPartnerId } },
     };
-
-    const updatedStudentReview = await this.studentReviewService.updateStudentReview(id, data);
-    return new SuccessResponse(updatedStudentReview);
+    const updatedReview = await this.studentReviewService.updateStudentReview(
+      id,
+      data,
+    );
+    return new SuccessResponse(updatedReview);
   }
 
   @Delete(':id')
-  async deleteStudentReview(@Param('id', ParseIntPipe) id: number): Promise<SuccessResponse> {
-    const studentReview = await this.studentReviewService.getStudentReviewById(id);
-    if (!studentReview) {
-      throw new ValidationException('id', 'StudentReview not found.');
-    }
-
+  async deleteStudentReview(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<SuccessResponse> {
     await this.studentReviewService.deleteStudentReview(id);
     return new SuccessResponse('StudentReview deleted successfully', null);
   }
-
 }
