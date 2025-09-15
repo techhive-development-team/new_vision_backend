@@ -1,8 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma/prisma.service';
-import { CreateEducationPartnerDto } from './dto/create-education_partner.dto';
-import { UpdateEducationPartnerDto } from './dto/update-education_partner.dto';
-import { EducationPartner, Prisma } from '@prisma/client';
+import { EducationPartner, PartnerType, Prisma } from '@prisma/client';
 import { PaginationDto } from 'src/common/dto/pagination-dto';
 
 @Injectable()
@@ -43,7 +41,10 @@ export class EducationPartnersService {
     });
   }
 
-  async update(id: number, data: Prisma.EducationPartnerUpdateInput,): Promise<EducationPartner> {
+  async update(
+    id: number,
+    data: Prisma.EducationPartnerUpdateInput,
+  ): Promise<EducationPartner> {
     return this.prisma.educationPartner.update({
       where: { id },
       data,
@@ -53,6 +54,14 @@ export class EducationPartnersService {
   async remove(id: number): Promise<EducationPartner> {
     return this.prisma.educationPartner.delete({
       where: { id },
+    });
+  }
+
+  async getPartnerByType(partType: PartnerType): Promise<EducationPartner[]> {
+    return this.prisma.educationPartner.findMany({
+      where: {
+        partnerType: partType,
+      },
     });
   }
 }

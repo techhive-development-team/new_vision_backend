@@ -13,6 +13,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { CoursesModule } from './modules/courses/courses.module';
 import { HappeningTypeModule } from './modules/happeningType/happeningType.module';
+import { HappeningsModule } from './modules/happening/happening.module';
 import { EducationPartnersModule } from './modules/education_partners/education_partners.module';
 import { StudentReviewModule } from './modules/studentReview/studentReview.module';
 
@@ -30,6 +31,10 @@ import { StudentReviewModule } from './modules/studentReview/studentReview.modul
         rootPath: join(__dirname, '..', 'uploads/courses'),
         serveRoot: '/uploads/courses',
       },
+      {
+        rootPath: join(__dirname, '..', 'uploads/education-partners'),
+        serveRoot: '/uploads/education-partners/',
+      },
     ),
     MulterModule.register({
       dest: './uploads/images',
@@ -38,6 +43,7 @@ import { StudentReviewModule } from './modules/studentReview/studentReview.modul
     ImageTypeModule,
     ImagesModule,
     HappeningTypeModule,
+    HappeningsModule,
     InquiryModule,
     AuthModule,
     EducationPartnersModule,

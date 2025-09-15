@@ -25,7 +25,7 @@ model ImageType {
   id        Int      @id @default(autoincrement())
   typeName  String
   createdAt DateTime @default(now())
-  images Image[]
+  images    Image[]
 }
 
 model Image {
@@ -65,6 +65,13 @@ model StudentReview {
   createdAt          DateTime         @default(now())
 }
 
+enum PartnerType {
+  INSTITUTE
+  UNIVERSITY
+  COLLEGE
+  NOTHING
+}
+
 model EducationPartner {
   id            Int             @id @default(autoincrement())
   overview      String
@@ -72,7 +79,7 @@ model EducationPartner {
   logo_img      String?
   location      String
   foundedDate   String?
-  partnerType   String?
+  partnerType   PartnerType     @default(NOTHING)
   createdAt     DateTime        @default(now())
   StudentReview StudentReview[]
 }

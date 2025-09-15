@@ -7,13 +7,12 @@ import {
   Body,
   ValidationPipe,
   ParseIntPipe,
-  UseGuards,
   UseInterceptors,
   UploadedFiles,
   Delete,
   Query,
 } from '@nestjs/common';
-import { EducationPartner, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { EducationPartnersService } from './education_partners.service';
 import { CreateEducationPartnerDto } from './dto/create-education_partner.dto';
 import { UpdateEducationPartnerDto } from './dto/update-education_partner.dto';
@@ -23,8 +22,6 @@ import { extname } from 'path';
 import { ValidationException } from 'src/common/exceptions/validation.exception';
 import { SuccessResponse } from 'src/common/exceptions/success';
 import { PaginationDto } from 'src/common/dto/pagination-dto';
-import { FileTypeValidationPipe } from 'src/common/pipes/file-type-validation';
-import { FileSizeValidationPipe } from 'src/common/pipes/file-size-validation';
 
 @Controller('education-partners')
 export class EducationPartnersController {
@@ -49,6 +46,20 @@ export class EducationPartnersController {
     if (!partner) {
       throw new ValidationException('id', 'EducationPartner not found.');
     }
+    return new SuccessResponse(partner);
+  }
+
+  @Get('/front/institute')
+  async getPartnerInstitute(): Promise<SuccessResponse> {
+    const partner =
+      await this.educationPartnersService.getPartnerByType('INSTITUTE');
+    return new SuccessResponse(partner);
+  }
+
+  @Get('/front/university')
+  async getPartnerYniversity(): Promise<SuccessResponse> {
+    const partner =
+      await this.educationPartnersService.getPartnerByType('UNIVERSITY');
     return new SuccessResponse(partner);
   }
 
