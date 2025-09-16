@@ -59,6 +59,7 @@ model StudentReview {
   id                 Int              @id @default(autoincrement())
   name               String
   batch              String
+  student_img        String
   educationPartnerId Int
   educationPartner   EducationPartner @relation(fields: [educationPartnerId], references: [id])
   review             String?

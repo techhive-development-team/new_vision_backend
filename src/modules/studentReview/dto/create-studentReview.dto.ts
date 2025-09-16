@@ -13,6 +13,9 @@ export class CreateStudentReviewDto {
     @Transform(({value})=> value?.trim())
     public batch: string;
 
+    @IsOptional()
+    public student_img: Express.Multer.File;
+
     @IsNotEmpty()
     public educationPartnerId: string;
 
