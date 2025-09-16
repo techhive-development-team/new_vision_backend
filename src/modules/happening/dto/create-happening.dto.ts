@@ -16,9 +16,4 @@ export class CreateHappeningDto {
   @IsNotEmpty()
   public happeningTypeId: string;
 
-//   @IsOptional()
-//   public mainImage: Express.Multer.File;
-
-//   @IsOptional()
-//   public albumId: string;
 }

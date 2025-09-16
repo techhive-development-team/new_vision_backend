@@ -15,18 +15,19 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { ValidationException } from 'src/common/exceptions/validation.exception';
 import { SuccessResponse } from 'src/common/exceptions/success';
 import { PaginationDto } from 'src/common/dto/pagination-dto';
+import * as argon2 from 'argon2';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // @UseGuards(JwtAuthGuard)
   @Post()
   async createUser(@Body() userData: CreateUserDto): Promise<SuccessResponse> {
     const user = await this.usersService.getUserByEmail(userData.email);
     if (user) {
       throw new ValidationException('email', 'Email already exists.');
     }
+    userData.password = await argon2.hash(userData.password);
     const newUser = await this.usersService.createUser(userData);
     return new SuccessResponse(newUser);
   }
@@ -66,6 +67,9 @@ export class UsersController {
     );
     if (user) {
       throw new ValidationException('email', 'Email already exists.');
+    }
+    if (typeof userData.password === 'string') {
+      userData.password = await argon2.hash(userData.password);
     }
     const updatedUser = await this.usersService.updateUser(id, userData);
     return new SuccessResponse(updatedUser);
