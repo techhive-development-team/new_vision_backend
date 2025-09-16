@@ -1,7 +1,6 @@
 import {
   Controller,
   Post,
-  Patch,
   Param,
   Get,
   Body,
@@ -11,6 +10,7 @@ import {
   UploadedFiles,
   Delete,
   Query,
+  Put,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { EducationPartnersService } from './education_partners.service';
@@ -105,7 +105,7 @@ export class EducationPartnersController {
     return new SuccessResponse(partner);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @UseInterceptors(
     FileFieldsInterceptor(
       [
