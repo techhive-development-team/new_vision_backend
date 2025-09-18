@@ -218,8 +218,7 @@ export class EducationPartnersController {
         );
       }
     }
-
     await this.educationPartnersService.remove(id);
-    return new SuccessResponse('educationPartner', 'Deleted successfully');
+    return new SuccessResponse('educationPartner', null);
   }
 }

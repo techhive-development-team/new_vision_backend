@@ -29,6 +29,17 @@ import { EducationPartnersModule } from './modules/education_partners/education_
         rootPath: join(__dirname, '..', 'uploads/courses'),
         serveRoot: '/uploads/courses',
       },
+<<<<<<< Updated upstream
+=======
+      {
+        rootPath: join(__dirname, '..', 'uploads/education-partners'),
+        serveRoot: '/uploads/education-partners/',
+      },
+      {
+        rootPath: join(__dirname, '..', 'uploads/happenings'),
+        serveRoot: '/uploads/happenings/',
+      },
+>>>>>>> Stashed changes
     ),
     MulterModule.register({
       dest: './uploads/images',
