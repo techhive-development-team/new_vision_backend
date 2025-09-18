@@ -17,7 +17,7 @@ import {
   FileInterceptor,
 } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join } from 'path';
 import { Prisma } from '@prisma/client';
 import { HappeningsService } from './happening.service';
 import { HappeningTypeService } from 'src/modules/happeningType/happeningType.service';
@@ -25,6 +25,8 @@ import { CreateHappeningDto } from './dto/create-happening.dto';
 import { ValidationException } from 'src/common/exceptions/validation.exception';
 import { SuccessResponse } from 'src/common/exceptions/success';
 import { PaginationDto } from 'src/common/dto/pagination-dto';
+import { promises as fs } from 'fs';
+
 
 @Controller('happenings')
 export class HappeningsController {
@@ -126,7 +128,40 @@ export class HappeningsController {
   async deleteHappening(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<SuccessResponse> {
+    const happening = await this.happeningsService.getHappeningById(id);
+
+    if (!happening) {
+      throw new ValidationException('id', 'Happening not found.');
+    }
+    const happeningWithAlbum = happening as typeof happening & {
+      album?: { id: number; images: { id: number; image: string }[] };
+    };
+
+    if (happeningWithAlbum.mainImage) {
+      const mainImagePath = join(
+        './uploads/happenings',
+        happeningWithAlbum.mainImage,
+      );
+      try {
+        await fs.access(mainImagePath);
+        await fs.unlink(mainImagePath);
+      } catch {
+        console.warn(`Main image not found or already deleted: ${mainImagePath}`);
+      }
+    }
+
+    if (happeningWithAlbum.album?.images?.length) {
+      for (const img of happeningWithAlbum.album.images) {
+        const imgPath = join('./uploads/happenings', img.image);
+        try {
+          await fs.access(imgPath);
+          await fs.unlink(imgPath);
+        } catch {
+          console.warn(`Album image not found or already deleted: ${imgPath}`);
+        }
+      }
+    }
     await this.happeningsService.deleteHappening(id);
-    return new SuccessResponse('Happening deleted', null);
+    return new SuccessResponse('Happening deleted successfully', null);
   }
 }
