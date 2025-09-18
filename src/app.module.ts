@@ -15,6 +15,7 @@ import { CoursesModule } from './modules/courses/courses.module';
 import { HappeningTypeModule } from './modules/happeningType/happeningType.module';
 import { HappeningsModule } from './modules/happening/happening.module';
 import { EducationPartnersModule } from './modules/education_partners/education_partners.module';
+import { StudentReviewModule } from './modules/studentReview/studentReview.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { EducationPartnersModule } from './modules/education_partners/education_
     InquiryModule,
     AuthModule,
     EducationPartnersModule,
+    StudentReviewModule,
     CoursesModule,
   ],
   controllers: [AppController],
