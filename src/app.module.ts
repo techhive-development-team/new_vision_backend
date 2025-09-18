@@ -35,6 +35,10 @@ import { StudentReviewModule } from './modules/studentReview/studentReview.modul
         rootPath: join(__dirname, '..', 'uploads/education-partners'),
         serveRoot: '/uploads/education-partners/',
       },
+      {
+        rootPath: join(__dirname, '..', 'uploads/happenings'),
+        serveRoot: '/uploads/happenings',
+      },
     ),
     MulterModule.register({
       dest: './uploads/images',
