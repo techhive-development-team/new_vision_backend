@@ -26,7 +26,7 @@ import { ValidationException } from 'src/common/exceptions/validation.exception'
 import { SuccessResponse } from 'src/common/exceptions/success';
 import { PaginationDto } from 'src/common/dto/pagination-dto';
 import { promises as fs } from 'fs';
-
+import { UpdateHappeningDto } from './dto/update-happening.dto';
 
 @Controller('happenings')
 export class HappeningsController {
@@ -54,12 +54,11 @@ export class HappeningsController {
     return new SuccessResponse(happening);
   }
 
-  // TODO File Validation
   @Post('upload')
   @UseInterceptors(
     FileFieldsInterceptor(
       [
-        { name: 'bg_image', maxCount: 1 },
+        { name: 'mainImage', maxCount: 1 },
         { name: 'album_images', maxCount: 10 },
       ],
       {
@@ -78,7 +77,7 @@ export class HappeningsController {
   async uploadHappening(
     @UploadedFiles()
     files: {
-      bg_image?: Express.Multer.File[];
+      mainImage?: Express.Multer.File[];
       album_images?: Express.Multer.File[];
     },
     @Body(new ValidationPipe()) dto: CreateHappeningDto,
@@ -90,16 +89,17 @@ export class HappeningsController {
         'happeningTypeId must be a number',
       );
     }
-    const happeningType = await this.happeningTypeService.getHappeningTypeById(oldHappeningTypeId);
+    const happeningType =
+      await this.happeningTypeService.getHappeningTypeById(oldHappeningTypeId);
     if (!happeningType) {
       throw new ValidationException(
         'happeningTypeId',
         `happeningTypeId with id ${happeningType} does not exist.`,
       );
     }
-    const bgImage = files.bg_image?.[0];
+    const bgImage = files.mainImage?.[0];
     const albumImages = files.album_images?.map((f) => f.filename) || [];
-    if (!bgImage) throw new ValidationException('bg_image', 'File is required');
+    if (!bgImage) throw new ValidationException('mainImage', 'File is required');
     const happeningTypeId = parseInt(dto.happeningTypeId);
     const album = await this.happeningsService.createHappeningAlbum();
     if (albumImages.length > 0) {
@@ -116,11 +116,86 @@ export class HappeningsController {
   }
 
   @Put(':id')
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'mainImage', maxCount: 1 },
+        { name: 'album_images', maxCount: 10 },
+      ],
+      {
+        storage: diskStorage({
+          destination: './uploads/happenings',
+          filename: (req, file, cb) => {
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const ext = extname(file.originalname);
+            cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+          },
+        }),
+      },
+    ),
+  )
   async updateHappening(
     @Param('id', ParseIntPipe) id: number,
-    @Body(new ValidationPipe()) dto: Prisma.HappeningUpdateInput,
+    @Body(new ValidationPipe()) dto: UpdateHappeningDto,
+    @UploadedFiles()
+    files: {
+      mainImage?: Express.Multer.File[];
+      album_images?: Express.Multer.File[];
+    },
   ): Promise<SuccessResponse> {
-    const updated = await this.happeningsService.updateHappening(id, dto);
+    //Validate Happening Type
+    const happeningTypeId = parseInt(dto.happeningTypeId);
+    if (isNaN(happeningTypeId)) {
+      throw new ValidationException(
+        'happeningTypeId',
+        'happeningTypeId must be a number',
+      );
+    }
+    const happeningType =
+      await this.happeningTypeService.getHappeningTypeById(happeningTypeId);
+    if (!happeningType) {
+      throw new ValidationException(
+        'happeningTypeId',
+        `happeningTypeId with id ${happeningTypeId} does not exist.`,
+      );
+    }
+
+    //Validate Happening
+    const happening = await this.happeningsService.getHappeningById(id);
+    if (!happening) {
+      throw new ValidationException('id', 'Happening not found');
+    }
+
+    // Determine which images were removed
+    const existingAlbum: string[] = dto.existingAlbum || [];
+    const removedImages = happening.album.images
+      .map((img) => img.image)
+      .filter((imgName) => !existingAlbum.includes(imgName));
+    if (removedImages.length > 0) {
+      await this.happeningsService.deleteHappeningImages(
+        happening.album.id,
+        removedImages,
+      );
+    }
+
+    const newFiles = files.album_images?.map((f) => f.filename) || [];
+    if (newFiles.length > 0) {
+      await this.happeningsService.createHappeningImages(
+        happening.album.id,
+        newFiles,
+      );
+    }
+
+    const updated = await this.happeningsService.updateHappening(id, {
+      title: dto.title,
+      description: dto.description,
+      mainImage: files.mainImage?.[0]?.filename || happening.mainImage,
+      happeningType: {
+        connect: { id: happeningTypeId },
+      },
+    });
+
     return new SuccessResponse(updated);
   }
 

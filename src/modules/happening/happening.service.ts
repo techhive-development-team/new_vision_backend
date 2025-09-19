@@ -45,7 +45,16 @@ export class HappeningsService {
     });
   }
 
-  async getHappeningById(id: number): Promise<Happening | null> {
+  async deleteHappeningImages(albumId: number, removedImages: string[]) {
+    return this.prisma.happeningImage.deleteMany({
+      where: {
+        albumId,
+        image: { in: removedImages },
+      },
+    });
+  }
+
+  async getHappeningById(id: number) {
     return this.prisma.happening.findUnique({
       where: { id },
       include: { happeningType: true, album: { include: { images: true } } },
